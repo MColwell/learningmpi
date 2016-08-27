@@ -29,33 +29,33 @@ int main (int argc, char* argv[]) {
 
   //Find this process's number
   MPI_Comm_rank(MPI_COMM_WORLD, &this_p);
-	
-	printf("hi %d", this_p);
+  
+  printf("hi %d", this_p);
   //Find number of processes total
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-	int width = sqrt(p);
-	
-	//north
+  int width = sqrt(p);
+  
+  //north
   if (this_p < width) {
-		edges[0] = 1;
-	}
+    edges[0] = 1;
+  }
 
-	//south
-	if (this_p >= p - width) {
-		edges[2] = 1;
-	}
-	
-	//west
-	if (this_p % width == 0) {
-		edges[3] = 1;
-	}
+  //south
+  if (this_p >= p - width) {
+    edges[2] = 1;
+  }
+  
+  //west
+  if (this_p % width == 0) {
+    edges[3] = 1;
+  }
 
-	//east
-	if (this_p % width == width - 1) {
-		edges[1] = 1;
-	}
-  printf("hi %d", this_p);
+  //east
+  if (this_p % width == width - 1) {
+    edges[1] = 1;
+  }
+
   //next two lines set up to get us a random number
   time_t t;
   srand((unsigned) time(&t));
@@ -74,12 +74,12 @@ int main (int argc, char* argv[]) {
   }
     
   //strlen+1 to get null termination of string
-	//Send initial message to process 0 to indicate health status
+  //Send initial message to process 0 to indicate health status
   MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
   printf("sent message %d", this_p);
   //Read all initial illness status messages and print map
   if (this_p == 0) {
-		printf("initial map\n");
+    printf("initial map\n");
     source = 0;
     while (source < p) {
       MPI_Recv(message, 10, MPI_CHAR, source, tag, MPI_COMM_WORLD, &status);
