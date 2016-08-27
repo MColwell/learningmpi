@@ -8,7 +8,6 @@
 //Mackenzie Colwell
 
 int main (int argc, char* argv[]) {
-
   int this_p; //which process this is
   int p; //total number of processes
   int source; //process number of sender
@@ -30,53 +29,33 @@ int main (int argc, char* argv[]) {
 
   //Find this process's number
   MPI_Comm_rank(MPI_COMM_WORLD, &this_p);
-
+	
+	printf("hi %d", this_p);
   //Find number of processes total
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-  
-  if (this_p == p - 1) {
-    printf("hello world");
-    int size = sqrt(p);
-      sprintf(message, "north", size);
-      for (destination = 0; destination < size; destination++) {
-        MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
-      }
-      sprintf(message, "south", size);
-      for (destination = this_p; destination > destination - size; destination--) {
-        MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
-      }
-      sprintf(message, "east", size);
-      for (destination = size - 1; destination <= this_p; destination = destination + size) {
-        MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
-      }
-      sprintf(message, "west", size);
-      for (destination = 0; destination < this_p; destination = destination + size) {
-        MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
-      }
-  }
+	int width = sqrt(p);
+	
+	//north
+  if (this_p < width) {
+		edges[0] = 1;
+	}
 
-  //This while loop continues to recieve messages until no message is an edge declaration. Each time it recieves an edge declaration, it sets the edge value in the relevant part of edges[]
-  char done = 'n';
-  while (done != 'y') {
-    MPI_Recv(message, 10, MPI_CHAR, 0, tag, MPI_COMM_WORLD, &status);
-    if (strcmp(message,"north") == 0) {
-      edges[0] = 1;
-    }
-    else if (strcmp(message,"east") == 0) {
-      edges[1] = 1;
-    }
-    else if (strcmp(message,"west") == 0) {
-      edges[2] = 1;
-    }
-    else if (strcmp(message,"south") == 0) {
-      edges[3] = 1;
-    }
-    else {
-      done = 'y';
-    }
-  }
-  
+	//south
+	if (this_p >= p - width) {
+		edges[2] = 1;
+	}
+	
+	//west
+	if (this_p % width == 0) {
+		edges[3] = 1;
+	}
+
+	//east
+	if (this_p % width == width - 1) {
+		edges[1] = 1;
+	}
+  printf("hi %d", this_p);
   //next two lines set up to get us a random number
   time_t t;
   srand((unsigned) time(&t));
@@ -91,25 +70,26 @@ int main (int argc, char* argv[]) {
   destination = 0;
   //add e to beginning of message if it is an east edge to signal that the map should print a newline after it
   if (edges[1] == 1) {
-    strcat("e",message);
+    tag = 1;
   }
     
   //strlen+1 to get null termination of string
 	//Send initial message to process 0 to indicate health status
   MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
-  
+  printf("sent message %d", this_p);
   //Read all initial illness status messages and print map
   if (this_p == 0) {
+		printf("initial map\n");
     source = 0;
     while (source < p) {
       MPI_Recv(message, 10, MPI_CHAR, source, tag, MPI_COMM_WORLD, &status);
-      if (strcmp(message,"cough") == 0 || strcmp(message,"ecough") == 0) {
+      if (strcmp(message,"cough") == 0) {
         printf("x");
       }
       else {
         printf(" ");
       }
-      if (strcmp(message,"ecough") == 0 || strcmp(message,"e:)") == 0) {
+      if (tag == 1) {
         printf("\n");
       }
       source++;
