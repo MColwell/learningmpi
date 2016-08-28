@@ -8,6 +8,10 @@
 //Mackenzie Colwell
 
 int main (int argc, char* argv[]) {
+
+  //Start up MPI
+  MPI_Init(&argc, &argv);
+
   int this_p; //which process this is
   int p; //total number of processes
   int source; //process number of sender
@@ -24,15 +28,13 @@ int main (int argc, char* argv[]) {
     counter++;
   }
 
-  //Start up MPI
-  MPI_Init(&argc, &argv);
-
   //Find this process's number
   MPI_Comm_rank(MPI_COMM_WORLD, &this_p);
-  
-  printf("hi %d", this_p);
   //Find number of processes total
   MPI_Comm_size(MPI_COMM_WORLD, &p);
+  
+  printf("hi from:%d of %d\n", this_p,p);
+  
 
   int width = sqrt(p);
   
@@ -76,18 +78,19 @@ int main (int argc, char* argv[]) {
   //strlen+1 to get null termination of string
   //Send initial message to process 0 to indicate health status
   MPI_Send(message, strlen(message)+1, MPI_CHAR, destination, tag, MPI_COMM_WORLD);
-  printf("sent message %d", this_p);
+  printf("sent message from %d to %d\n", this_p, destination);
   //Read all initial illness status messages and print map
   if (this_p == 0) {
     printf("initial map\n");
     source = 0;
     while (source < p) {
       MPI_Recv(message, 10, MPI_CHAR, source, tag, MPI_COMM_WORLD, &status);
-      if (strcmp(message,"cough") == 0) {
+      printf("Recieved message from %d ... %s\n", source,message);
+      if (strncmp(message,"cough",6) == 0) {
         printf("x");
       }
       else {
-        printf(" ");
+        printf("-");
       }
       if (tag == 1) {
         printf("\n");
@@ -95,6 +98,7 @@ int main (int argc, char* argv[]) {
       source++;
     }
   }
+  printf("Done [%d]\n",this_p);
 
   MPI_Finalize();
   return 0;
